@@ -1,0 +1,37 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Jun 23, 2026, 8:42:27 PM
+    Author     : mai thoa
+*/
+
+.Contaner {
+    -fx-background-color: #1e1e1e;
+    -fx-alignment: center;
+    -fx-spacing: 15;
+}
+
+.Subject {
+    -fx-font-size: 28;
+    -fx-font-weight: bold;
+    -fx-fill: #00d4ff;
+    -fx-stroke-width: 1;
+    -fx-stroke: white;
+}
+
+.Button {
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-padding: 8px;
+    -fx-pref-width: 250;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.Button:hover {
+    -fx-background-color: #555555;
+}
