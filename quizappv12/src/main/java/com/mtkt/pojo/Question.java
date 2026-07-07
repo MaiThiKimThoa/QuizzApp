@@ -1,169 +1,127 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mtkt.pojo;
 
+import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
- *
  * @author mai thoa
  */
 public class Question {
-    private int id;
-    private String content;
-    private String hint;
-    private String image;
-    private Category category;
-    private Level level;
-    private List<Choice> choices;
-    
-    private Question(Builder b){
-    this.id = b.id;
-    this.content = b.content;
-    this.hint = b.hint;
-    this.image = b.image;
-    this.category = b.category;
-    this.level = b.level;
-    this.choices = b.choices;
-    }
-    
-    
-    public static class Builder{
-        private int id;
-    private String content;
-    private String hint;
-    private String image;
-    private Category category;
-    private Level level;
-    private List<Choice> choices;
-    
-    public Builder setId(int id){
-    this.id =id;
-    return this;
-    }
-    
-    public Builder setContent(String content){
-    this.content = content;
-    return this;
-    }
-    
-     public Builder setHint(String hint){
-    this.hint = hint;
-    return this;
-    }
-     
-      public Builder adChoice(Choice c){
-    this.choices.add(c);
-    return this;
+    private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
+    private final StringProperty content = new SimpleStringProperty(this, "content");
+    private final StringProperty hint = new SimpleStringProperty(this, "hint");
+    private final StringProperty image = new SimpleStringProperty(this, "image");
+    private final ObjectProperty<Category> category = new SimpleObjectProperty<>(this, "category");
+    private final ObjectProperty<Level> level = new SimpleObjectProperty<>(this, "level");
+    private List<Choice> choices = new ArrayList<>();
+
+    // Constructor mặc định
+    public Question() {
     }
 
-        public Builder() {
-        }
-//...
-        
-        public Question build(){
-        return new Question(this);
-        }
+    // Constructor chuẩn đầy đủ tham số
+    public Question(int id, String content, Category category, Level level) {
+        setId(id);
+        setContent(content);
+        setCategory(category);
+        setLevel(level);
     }
 
-    /**
-     * @return the id
-     */
+    // Hàm phụ trợ cho code cũ
+    public Category getCate() {
+        return getCategory();
+    }
+
+    // --- ID PROPERTY, GETTER, SETTER ---
     public int getId() {
+        return id.get();
+    }
+
+    public void setId(int value) {
+        id.set(value);
+    }
+
+    public IntegerProperty idProperty() {
         return id;
     }
 
-    /**
-     * @param id the id to set
-     */
-    public void setId(int id) {
-        this.id = id;
+    // --- CONTENT PROPERTY, GETTER, SETTER ---
+    public String getContent() {
+        return content.get();
     }
 
-    /**
-     * @return the content
-     */
-    public String getContent() {
+    public void setContent(String value) {
+        content.set(value);
+    }
+
+    public StringProperty contentProperty() {
         return content;
     }
 
-    /**
-     * @param content the content to set
-     */
-    public void setContent(String content) {
-        this.content = content;
+    // --- HINT PROPERTY, GETTER, SETTER ---
+    public String getHint() {
+        return hint.get();
     }
 
-    /**
-     * @return the hint
-     */
-    public String getHint() {
+    public void setHint(String value) {
+        hint.set(value);
+    }
+
+    public StringProperty hintProperty() {
         return hint;
     }
 
-    /**
-     * @param hint the hint to set
-     */
-    public void setHint(String hint) {
-        this.hint = hint;
+    // --- IMAGE PROPERTY, GETTER, SETTER ---
+    public String getImage() {
+        return image.get();
     }
 
-    /**
-     * @return the image
-     */
-    public String getImage() {
+    public void setImage(String value) {
+        image.set(value);
+    }
+
+    public StringProperty imageProperty() {
         return image;
     }
 
-    /**
-     * @param image the image to set
-     */
-    public void setImage(String image) {
-        this.image = image;
+    // --- CATEGORY PROPERTY, GETTER, SETTER ---
+    public Category getCategory() {
+        return category.get();
     }
 
-    /**
-     * @return the category
-     */
-    public Category getCategory() {
+    public void setCategory(Category value) {
+        category.set(value);
+    }
+
+    public ObjectProperty<Category> categoryProperty() {
         return category;
     }
 
-    /**
-     * @param category the category to set
-     */
-    public void setCategory(Category category) {
-        this.category = category;
+    // --- LEVEL PROPERTY, GETTER, SETTER ---
+    public Level getLevel() {
+        return level.get();
     }
 
-    /**
-     * @return the level
-     */
-    public Level getLevel() {
+    public void setLevel(Level value) {
+        level.set(value);
+    }
+
+    public ObjectProperty<Level> levelProperty() {
         return level;
     }
 
-    /**
-     * @param level the level to set
-     */
-    public void setLevel(Level level) {
-        this.level = level;
-    }
-
-    /**
-     * @return the choices
-     */
+    // --- CHOICES LIST ---
     public List<Choice> getChoices() {
         return choices;
     }
 
-    /**
-     * @param choices the choices to set
-     */
     public void setChoices(List<Choice> choices) {
         this.choices = choices;
     }
-    
 }

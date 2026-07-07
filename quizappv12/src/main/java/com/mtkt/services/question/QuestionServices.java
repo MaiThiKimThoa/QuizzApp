@@ -1,67 +1,131 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mtkt.services.question;
 
 import com.mtkt.pojo.Category;
+import com.mtkt.pojo.Choice;
+import com.mtkt.pojo.Level; // Bổ sung import Level
 import com.mtkt.pojo.Question;
 import com.mtkt.utils.MyConnSingleton;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author mai thoa
  */
 public class QuestionServices {
 
-    public List<Question> getQuestions() {
-        // Đã sửa tên biến đồng nhất thành 'questions' (số nhiều)
+    // ĐÃ SỬA: Bỏ throws thừa, sửa logic SQL và PreparedStatement
+    public List<Question> getQuestions(String kw, Category cate, Level lvl) throws SQLException {
         List<Question> questions = new ArrayList<>();
-        String sql = "SELECT * FROM question"; 
+        
+        String sql = "SELECT * FROM question WHERE 1=1"; 
+        List<Object> params = new ArrayList<>();
 
-        // Sử dụng try-with-resources để tự động đóng kết nối, tránh rò rỉ bộ nhớ
-        // ĐÃ SỬA: Dùng prepareStatement thay vì prepareCall, và stm.executeQuery() không truyền tham số sql
-        try (Connection conn = MyConnSingleton.getInstance().connect();
-             PreparedStatement stm = conn.prepareStatement(sql);
-             ResultSet rs = stm.executeQuery()) {
-
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                
-                // GIỮ NGUYÊN cấu trúc lấy dữ liệu Category từ file gốc của bạn
-                // Lưu ý: Hãy chắc chắn trong bảng 'question' của bạn có cột 'name' (hoặc bạn đã JOIN bảng)
-                String name = rs.getString("name"); 
-
-                // In ra màn hình kiểm tra
-                System.out.printf("%d - %s\n", id, name);
-
-                // Khởi tạo đối tượng Category và gán dữ liệu
-                Category c = new Category();
-                c.setId(id);         
-                c.setName(name);
-                
-                // Lấy nội dung câu hỏi
-                String content = rs.getString("content");
-                
-                // Thêm vào danh sách (Sử dụng đúng tên biến 'questions')
-                // Nếu Builder của Question có nhận Category, bạn có thể truyền thêm .setCategory(c) vào đây nếu cần
-                questions.add(new Question.Builder()
-                                        .setId(id)
-                                        .setContent(content)
-                                        .build());
-            }
-            
-        } catch (SQLException ex) {
-            System.err.println("Lỗi kết nối CSDL hoặc truy vấn: " + ex.getMessage());
+        if (kw != null && !kw.isEmpty()) {
+            sql += " AND content LIKE CONCAT('%', ?, '%')"; // ĐÃ SỬA: Thêm khoảng trắng và AND
+            params.add(kw);
         }
 
-        // ĐÃ SỬA: Trả về đúng tên biến 'questions' ở đầu hàm
-        return questions; 
+        if (cate != null) {
+            sql += " AND category_id = ?"; // ĐÃ SỬA: Thêm khoảng trắng và AND
+            params.add(cate.getId());
+        }
+
+        if (lvl != null) {
+            sql += " AND level_id = ?"; // ĐÃ SỬA: Thêm khoảng trắng và AND
+            params.add(lvl.getId());
+        }
+
+        // ĐÃ SỬA: Dùng try-with-resources để tự động đóng Connection/PreparedStatement/ResultSet
+        try (Connection conn = MyConnSingleton.getInstance().connect();
+             PreparedStatement stm = conn.prepareStatement(sql)) { // ĐÃ SỬA: Dùng prepareStatement thay vì prepareCall
+
+            for (int i = 0; i < params.size(); i++) {
+                stm.setObject(i + 1, params.get(i)); // ĐÃ SỬA: params.get(i) thay vì params.getClass(i)
+            }
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String content = rs.getString("content");
+
+                    int categoryId = rs.getInt("category_id");
+                    Category c = new Category();
+                    c.setId(categoryId);
+
+                    Question question = new Question(id, content, c, null);
+                    questions.add(question);
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("Lỗi kết nối CSDL hoặc truy vấn: " + ex.getMessage());
+            throw ex; // Nên throw để Controller biết mà xử lý
+        }
+
+        return questions;
+    }
+
+    public void addQuestion(Question q, List<Choice> choices) throws SQLException {
+        String insertQuestionSql = "INSERT INTO question (content, category_id, level_id) VALUES (?, ?, ?)";
+        String insertChoiceSql = "INSERT INTO choice (content, is_correct, question_id) VALUES (?, ?, ?)";
+
+        Connection conn = null;
+        try {
+            conn = MyConnSingleton.getInstance().connect();
+            conn.setAutoCommit(false); 
+
+            try (PreparedStatement stmQ = conn.prepareStatement(insertQuestionSql, Statement.RETURN_GENERATED_KEYS)) {
+                stmQ.setString(1, q.getContent());
+                stmQ.setInt(2, q.getCate() != null ? q.getCate().getId() : 0);
+                stmQ.setInt(3, q.getLevel() != null ? q.getLevel().getId() : 0);
+                
+                stmQ.executeUpdate();
+
+                int questionId = 0;
+                try (ResultSet rs = stmQ.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        questionId = rs.getInt(1);
+                    }
+                }
+
+                if (questionId > 0 && choices != null && !choices.isEmpty()) {
+                    try (PreparedStatement stmC = conn.prepareStatement(insertChoiceSql)) {
+                        for (Choice choice : choices) {
+                            stmC.setString(1, choice.getContent());
+                            stmC.setBoolean(2, choice.isIsCorrect());
+                            stmC.setInt(3, questionId);
+                            stmC.addBatch();
+                        }
+                        stmC.executeBatch();
+                    }
+                } else {
+                    throw new SQLException("Không lấy được ID câu hỏi mới hoặc danh sách đáp án trống.");
+                }
+            }
+
+            conn.commit(); 
+
+        } catch (SQLException ex) {
+            if (conn != null) {
+                try {
+                    conn.rollback(); 
+                } catch (SQLException rollbackEx) {
+                    System.err.println("Lỗi khi rollback dữ liệu: " + rollbackEx.getMessage());
+                }
+            }
+            throw ex;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Lỗi khi đóng kết nối: " + e.getMessage());
+                }
+            }
+        }
     }
 }

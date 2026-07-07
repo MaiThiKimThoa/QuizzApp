@@ -32,3 +32,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-background-radius: 10;
     -fx-cursor: hand;
 }
+.Input{
+    -fx-pref-width: 250;
+    -fx-text-fill: 10;
+    
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;          /* Red text color */
+    
+}
